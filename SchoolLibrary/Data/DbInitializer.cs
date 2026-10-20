@@ -45,6 +45,32 @@ namespace SchoolLibrary.Data
 
                 using var command = new SqliteCommand(query, connection);
                 command.ExecuteNonQuery();
+
+            SeedBooks();
+        }
+
+        public void SeedBooks()
+        {
+            using var connection = new SqliteConnection(SQL_connectionString);
+            connection.Open();
+
+
+            using var countCommand = new SqliteCommand("SELECT COUNT(*) FROM Books", connection);
+            long count = (long)countCommand.ExecuteScalar()!;
+
+            if (count > 0)
+            {
+                return;
             }
+
+            var insertQuery = @"
+        INSERT INTO Books (Title, Author, Total, Available) VALUES
+            ('The Hobbit', 'J.R.R. Tolkien', 5, 5),
+            ('1984', 'George Orwell', 3, 3),
+            ('To Kill a Mockingbird', 'Harper Lee', 4, 4);";
+
+            using var insertCommand = new SqliteCommand(insertQuery, connection);
+            insertCommand.ExecuteNonQuery();
         }
     }
+}

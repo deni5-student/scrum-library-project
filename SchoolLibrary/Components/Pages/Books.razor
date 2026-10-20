@@ -1,0 +1,38 @@
+﻿@page "/books"
+@using SchoolLibrary.Models
+@using SchoolLibrary.Repositories 
+@inject IBookRepository BookRepository
+
+<h3>Books</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Total</th>
+            <th>Available</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var book in books)
+        {
+            <tr>
+                <td>@book.Title</td>
+                <td>@book.Author</td>
+                <td>@book.Total</td>
+                <td>@book.Available</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+
+	private List<Book> books = new();
+
+	protected override void OnInitialized()
+	{
+        books = BookRepository.GetAllBooks();
+	}
+}
