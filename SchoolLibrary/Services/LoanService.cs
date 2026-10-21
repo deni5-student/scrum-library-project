@@ -48,5 +48,44 @@ namespace SchoolLibrary.Services
                 DueDate = loan.DueDate
             };
         }
+        public LoanResult ReturnBook(string username, int loanId)
+        {
+            var loan = _loanRepository.GetById(loanId);
+            if (loan is null || loan.Username != username)
+            {
+                return new LoanResult { Success = false, Message = "Lånet blev ikke fundet." };
+            }
+
+            if (loan.IsReturned)
+            {
+                return new LoanResult { Success = false, Message = "Bogen er allerede afleveret." };
+            }
+
+            var now = DateTime.Now;
+            _loanRepository.Return(loanId, now);
+
+            var book = _bookRepository.GetById(loan.BookId);
+            if (book is not null)
+            {
+                _bookRepository.UpdateAvailable(book.Id, book.Available + 1);
+            }
+
+            var title = book?.Title ?? "Bogen";
+
+            if (now > loan.DueDate)
+            {
+                return new LoanResult
+                {
+                    Success = false,
+                    Message = $"\"{title}\" er afleveret for sent. Afleveringsdatoen var {loan.DueDate:dd-MM-yyyy}."
+                };
+            }
+
+            return new LoanResult
+            {
+                Success = true,
+                Message = $"\"{title}\" er afleveret til tiden. ✔"
+            };
+        }
     }
 }
