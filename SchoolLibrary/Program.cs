@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using SchoolLibrary.Components;
 using SchoolLibrary.Data;
 using SchoolLibrary.Repositories;
+using SchoolLibrary.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +13,19 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddSingleton<DbInitializer>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login";
+        options.LogoutPath = "/logout";
+        options.AccessDeniedPath = "/access-denied";
+    });
+
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
 
 var app = builder.Build();
 
@@ -21,10 +37,11 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.Services.GetRequiredService<DbInitializer>().CreateTables();
-
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+app.UseStatusCodePagesWithReExecute("/not-found");
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 
@@ -46,5 +63,11 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Der skete en fejl under oprettelse af databasen.");
     }
 }
+
+app.MapPost("/logout", async (HttpContext context) =>
+{
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    return Results.Redirect("/login");
+}).DisableAntiforgery();
 
 app.Run();
