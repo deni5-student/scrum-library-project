@@ -1,0 +1,103 @@
+﻿@page "/mine-laan"
+
+<h3>Mine Lån</h3>
+
+@code {
+
+}
+a@page "/mine-laan"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Student")]
+@inject ILoanService LoanService
+@inject ILoanRepository LoanRepository
+@inject IBookRepository BookRepository
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Mine lån</PageTitle>
+
+<h1>Mine lån</h1>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert @(success ? "alert-success" : "alert-danger")">@message</div>
+}
+
+@if (loans.Count == 0)
+{
+    <p>Du har ingen lån endnu.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Bog</th>
+                <th>Lånt</th>
+                <th>Afleveres senest</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var loan in loans)
+            {
+                <tr>
+                    <td>@TitleOf(loan.BookId)</td>
+                    <td>@loan.BorrowedAt.ToString("dd-MM-yyyy")</td>
+                    <td>@loan.DueDate.ToString("dd-MM-yyyy")</td>
+                    <td>
+                        @if (!loan.IsReturned)
+                        {
+                            <span class="@(loan.IsOverdue ? "text-danger" : "")">@(loan.IsOverdue ? "Overskredet" : "Udlånt")</span>
+                        }
+                        else if (loan.IsLate)
+                        {
+                            <span class="text-danger">Afleveret for sent</span>
+                        }
+                        else
+                        {
+                            <span class="text-success">Afleveret ✔</span>
+                        }
+                    </td>
+                    <td>
+                        @if (!loan.IsReturned)
+                        {
+                            <button class="btn btn-secondary btn-sm" @onclick="() => Return(loan.Id)">Aflever</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Loan> loans = new();
+    private Dictionary<int, string> titles = new();
+    private string username = "";
+    private string? message;
+    private bool success;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthStateProvider.GetAuthenticationStateAsync();
+        username = state.User.Identity?.Name ?? "";
+        Load();
+    }
+
+    private void Load()
+    {
+        titles = BookRepository.GetAllBooks().ToDictionary(b => b.Id, b => b.Title);
+        loans = LoanRepository.GetByUser(username);
+    }
+
+    private string TitleOf(int bookId) => titles.TryGetValue(bookId, out var t) ? t : "(ukendt bog)";
+
+    private void Return(int loanId)
+    {
+        var result = LoanService.ReturnBook(username, loanId);
+        success = result.Success;
+        message = result.Message;
+        Load();
+    }
+}

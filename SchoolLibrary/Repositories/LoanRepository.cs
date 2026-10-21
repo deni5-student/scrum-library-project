@@ -68,5 +68,36 @@ namespace SchoolLibrary.Repositories
             command.Parameters.AddWithValue("@id", loanId);
             command.ExecuteNonQuery();
         }
+
+        public List<Loan> GetByUser(string username)
+        {
+            var loans = new List<Loan>();
+
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            using var command = new SqliteCommand(
+                @"SELECT Id, BookId, Username, BorrowedAt, DueDate, ReturnedAt
+          FROM Loans WHERE Username = @username
+          ORDER BY BorrowedAt DESC",
+                connection);
+            command.Parameters.AddWithValue("@username", username);
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                loans.Add(new Loan
+                {
+                    Id = reader.GetInt32(0),
+                    BookId = reader.GetInt32(1),
+                    Username = reader.GetString(2),
+                    BorrowedAt = DateTime.Parse(reader.GetString(3)),
+                    DueDate = DateTime.Parse(reader.GetString(4)),
+                    ReturnedAt = reader.IsDBNull(5) ? null : DateTime.Parse(reader.GetString(5))
+                });
+            }
+
+            return loans;
+        }
     }
 }

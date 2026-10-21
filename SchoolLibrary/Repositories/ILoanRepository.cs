@@ -7,5 +7,6 @@ namespace SchoolLibrary.Repositories
         void Create(Loan loan);
         Loan? GetById(int id);
         void Return(int loanId, DateTime returnedAt);
+        List<Loan> GetByUser(string username);
     }
 }
