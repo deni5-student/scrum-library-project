@@ -1,9 +1,18 @@
 ﻿@page "/books"
-@using SchoolLibrary.Models
-@using SchoolLibrary.Repositories 
+@rendermode InteractiveServer
+@attribute [Authorize]
 @inject IBookRepository BookRepository
+@inject ILoanService LoanService
+@inject AuthenticationStateProvider AuthStateProvider
 
-<h3>Books</h3>
+<PageTitle>Bøger</PageTitle>
+
+<h1>Bøger</h1>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert @(success ? "alert-success" : "alert-danger")">@message</div>
+}
 
 <table class="table">
     <thead>
@@ -12,6 +21,9 @@
             <th>Author</th>
             <th>Total</th>
             <th>Available</th>
+            <AuthorizeView Roles="Student">
+                <th></th>
+            </AuthorizeView>
         </tr>
     </thead>
     <tbody>
@@ -22,17 +34,42 @@
                 <td>@book.Author</td>
                 <td>@book.Total</td>
                 <td>@book.Available</td>
+                <AuthorizeView Roles="Student">
+                    <td>
+                        <button class="btn btn-primary btn-sm" disabled="@(book.Available <= 0)" @onclick="() => Borrow(book.Id)">Lån</button>
+                    </td>
+                </AuthorizeView>
             </tr>
         }
     </tbody>
 </table>
 
 @code {
+    private List<Book> books = new();
+    private string? message;
+    private bool success;
 
-	private List<Book> books = new();
-
-	protected override void OnInitialized()
-	{
+    protected override void OnInitialized()
+    {
         books = BookRepository.GetAllBooks();
-	}
+    }
+
+    private async Task Borrow(int bookId)
+    {
+        var state = await AuthStateProvider.GetAuthenticationStateAsync();
+        var username = state.User.Identity?.Name;
+
+        if (string.IsNullOrEmpty(username))
+        {
+            success = false;
+            message = "Du skal være logget ind.";
+            return;
+        }
+
+        var result = LoanService.BorrowBook(username, bookId);
+        success = result.Success;
+        message = result.Message;
+
+        books = BookRepository.GetAllBooks();
+    }
 }
