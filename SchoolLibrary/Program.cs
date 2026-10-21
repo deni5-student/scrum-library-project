@@ -1,6 +1,7 @@
 using SchoolLibrary.Components;
 using SchoolLibrary.Data;
 using SchoolLibrary.Repositories;
+using SchoolLibrary.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddSingleton<DbInitializer>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 
 var app = builder.Build();
 
@@ -23,7 +25,9 @@ if (!app.Environment.IsDevelopment())
 
 app.Services.GetRequiredService<DbInitializer>().CreateTables();
 
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+
+IApplicationBuilder applicationBuilder = app.UseStatusCodePagesWithReExecute("/not-found");
 app.UseHttpsRedirection();
 
 app.UseAntiforgery();
