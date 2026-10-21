@@ -8,5 +8,9 @@ namespace SchoolLibrary.Repositories
         Loan? GetById(int id);
         void Return(int loanId, DateTime returnedAt);
         List<Loan> GetByUser(string username);
+
+        List<Loan> GetActive();
+
+        List<Loan> GetAll();
     }
 }

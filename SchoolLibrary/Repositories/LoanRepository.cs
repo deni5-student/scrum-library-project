@@ -99,5 +99,63 @@ namespace SchoolLibrary.Repositories
 
             return loans;
         }
+
+        public List<Loan> GetActive()
+        {
+            var loans = new List<Loan>();
+
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            using var command = new SqliteCommand(
+                @"SELECT Id, BookId, Username, BorrowedAt, DueDate, ReturnedAt
+          FROM Loans WHERE ReturnedAt IS NULL
+          ORDER BY DueDate",
+                connection);
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                loans.Add(new Loan
+                {
+                    Id = reader.GetInt32(0),
+                    BookId = reader.GetInt32(1),
+                    Username = reader.GetString(2),
+                    BorrowedAt = DateTime.Parse(reader.GetString(3)),
+                    DueDate = DateTime.Parse(reader.GetString(4)),
+                    ReturnedAt = null
+                });
+            }
+
+            return loans;
+        }
+        public List<Loan> GetAll()
+        {
+            var loans = new List<Loan>();
+
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            using var command = new SqliteCommand(
+                @"SELECT Id, BookId, Username, BorrowedAt, DueDate, ReturnedAt
+          FROM Loans ORDER BY BorrowedAt DESC",
+                connection);
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                loans.Add(new Loan
+                {
+                    Id = reader.GetInt32(0),
+                    BookId = reader.GetInt32(1),
+                    Username = reader.GetString(2),
+                    BorrowedAt = DateTime.Parse(reader.GetString(3)),
+                    DueDate = DateTime.Parse(reader.GetString(4)),
+                    ReturnedAt = reader.IsDBNull(5) ? null : DateTime.Parse(reader.GetString(5))
+                });
+            }
+
+            return loans;
+        }
     }
 }
