@@ -42,5 +42,43 @@ namespace SchoolLibrary.Repositories
 
             return books;
         }
+        public Book? GetById(int id)
+        {
+            using var connection = new SqliteConnection(SQL_connectionString);
+            connection.Open();
+
+            using var command = new SqliteCommand(
+                "SELECT Id, Title, Author, Total, Available FROM Books WHERE Id = @id",
+                connection);
+            command.Parameters.AddWithValue("@id", id);
+
+            using var reader = command.ExecuteReader();
+            if (!reader.Read())
+            {
+                return null;
+            }
+
+            return new Book
+            {
+                Id = reader.GetInt32(0),
+                Title = reader.GetString(1),
+                Author = reader.GetString(2),
+                Total = reader.GetInt32(3),
+                Available = reader.GetInt32(4)
+            };
+        }
+
+        public void UpdateAvailable(int bookId, int newAvailable)
+        {
+            using var connection = new SqliteConnection(SQL_connectionString);
+            connection.Open();
+
+            using var command = new SqliteCommand(
+                "UPDATE Books SET Available = @available WHERE Id = @id",
+                connection);
+            command.Parameters.AddWithValue("@available", newAvailable);
+            command.Parameters.AddWithValue("@id", bookId);
+            command.ExecuteNonQuery();
+        }
     }
 }
