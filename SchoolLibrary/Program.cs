@@ -12,6 +12,8 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton<DbInitializer>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
