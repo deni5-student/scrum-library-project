@@ -80,5 +80,20 @@ namespace SchoolLibrary.Repositories
             command.Parameters.AddWithValue("@id", bookId);
             command.ExecuteNonQuery();
         }
+
+        public void AddBook(Book book)
+        {
+            using var connection = new SqliteConnection(SQL_connectionString);
+            connection.Open();
+
+            using var command = new SqliteCommand(
+                "INSERT INTO Books (Title, Author, Total, Available) VALUES (@title, @author, @total, @available)",
+                connection);
+            command.Parameters.AddWithValue("@title", book.Title);
+            command.Parameters.AddWithValue("@author", book.Author);
+            command.Parameters.AddWithValue("@total", book.Total);
+            command.Parameters.AddWithValue("@available", book.Total);
+            command.ExecuteNonQuery();
+        }
     }
 }
