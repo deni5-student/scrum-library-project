@@ -7,5 +7,7 @@ namespace SchoolLibrary.Repositories
         List<Book> GetAllBooks();
         Book? GetById(int id);
         void UpdateAvailable(int bookId, int newAvailable);
+
+        void AddBook(Book book);
     }
 }
