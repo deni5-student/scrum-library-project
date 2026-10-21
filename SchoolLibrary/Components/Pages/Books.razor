@@ -36,7 +36,7 @@
                 <td>@book.Available</td>
                 <AuthorizeView Roles="Student">
                     <td>
-                        <button class="btn btn-primary btn-sm" @onclick="() => Borrow(book.Id)">Lån</button>
+                        <button class="btn btn-primary btn-sm" disabled="@(book.Available <= 0)" @onclick="() => Borrow(book.Id)">Lån</button>
                     </td>
                 </AuthorizeView>
             </tr>
