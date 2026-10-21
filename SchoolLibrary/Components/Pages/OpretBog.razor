@@ -1,0 +1,60 @@
+﻿@page "/admin/bog/ny"
+
+@attribute [Authorize(Roles = "Librarian")]
+@inject IBookRepository BookRepository
+
+<PageTitle>Opret bog</PageTitle>
+
+<h1>Opret bog</h1>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-success">@message</div>
+}
+
+<EditForm Model="Model" FormName="opret-bog" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="title" class="form-label">Titel</label>
+        <InputText id="title" class="form-control" @bind-Value="Model.Title" />
+        <ValidationMessage For="() => Model.Title" />
+    </div>
+
+    <div class="mb-3">
+        <label for="author" class="form-label">Forfatter</label>
+        <InputText id="author" class="form-control" @bind-Value="Model.Author" />
+        <ValidationMessage For="() => Model.Author" />
+    </div>
+
+    <div class="mb-3">
+        <label for="total" class="form-label">Antal eksemplarer</label>
+        <InputNumber id="total" class="form-control" @bind-Value="Model.Total" />
+        <ValidationMessage For="() => Model.Total" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Gem bog</button>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private BookModel Model { get; set; } = new();
+
+    private string? message;
+
+    private void HandleSubmit()
+    {
+        var book = new Book
+        {
+            Title = Model.Title,
+            Author = Model.Author,
+            Total = Model.Total
+        };
+
+        BookRepository.AddBook(book);
+
+        message = $"\"{book.Title}\" er oprettet med {book.Total} eksemplarer.";
+        Model = new BookModel();
+    }
+}
