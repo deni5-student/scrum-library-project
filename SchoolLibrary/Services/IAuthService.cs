@@ -4,6 +4,6 @@ namespace SchoolLibrary.Services
 {
     public interface IAuthService
     {
-        User? Authenticate(string username, string password);
+        User? ValidateUser(string username, string password);
     }
 }

@@ -25,11 +25,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.Services.GetRequiredService<DbInitializer>().CreateTables();
-
-builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
-
-IApplicationBuilder applicationBuilder = app.UseStatusCodePagesWithReExecute("/not-found");
+app.UseStatusCodePagesWithReExecute("/not-found");
 app.UseHttpsRedirection();
 
 app.UseAntiforgery();

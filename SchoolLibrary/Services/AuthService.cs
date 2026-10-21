@@ -14,7 +14,7 @@ namespace SchoolLibrary.Services
             _passwordHasher = passwordHasher;
         }
 
-        public User? Authenticate(string username, string password)
+        public User? ValidateUser(string username, string password)
         {
             var user = _userRepository.GetByUsername(username);
             if (user == null)
