@@ -14,6 +14,25 @@
     <div class="alert @(success ? "alert-success" : "alert-danger")">@message</div>
 }
 
+<div class="row mb-3">
+    <div class="col-md-6">
+        <input class="form-control" placeholder="Søg på titel eller forfatter..."
+               @bind="searchText" @bind:event="oninput" />
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" @bind="sortBy">
+            <option value="title">Sortér efter titel</option>
+            <option value="author">Sortér efter forfatter</option>
+        </select>
+    </div>
+    <div class="col-md-3 d-flex align-items-center">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="onlyAvailable" @bind="onlyAvailable" />
+            <label class="form-check-label" for="onlyAvailable">Kun ledige</label>
+        </div>
+    </div>
+</div>
+
 <table class="table">
     <thead>
         <tr>
@@ -27,7 +46,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var book in books)
+        @foreach (var book in FilteredBooks)
         {
             <tr>
                 <td>@book.Title</td>
@@ -45,9 +64,29 @@
 </table>
 
 @code {
+    private string searchText = "";
+    private string sortBy = "title";
+    private bool onlyAvailable;
+
     private List<Book> books = new();
     private string? message;
     private bool success;
+
+    private IEnumerable<Book> FilteredBooks
+    {
+        get
+        {
+            var result = books.Where(b =>
+                (string.IsNullOrWhiteSpace(searchText) ||
+                 b.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                 b.Author.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                && (!onlyAvailable || b.Available > 0));
+
+            return sortBy == "author"
+                ? result.OrderBy(b => b.Author)
+                : result.OrderBy(b => b.Title);
+        }
+    }
 
     protected override void OnInitialized()
     {
