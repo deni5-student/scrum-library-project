@@ -1,30 +1,55 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">SchoolLibrary</a>
+﻿<nav class="nav flex-column">
+    <div class="nav-item px-3">
+        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+        </NavLink>
     </div>
-</div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+    <AuthorizeView>
+        <Authorized>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="books">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Bøger
+                </NavLink>
+            </div>
+        </Authorized>
+    </AuthorizeView>
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
+    <AuthorizeView Roles="Librarian">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            <NavLink class="nav-link" href="admin/bog/ny">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Opret bog
             </NavLink>
         </div>
-
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+            <NavLink class="nav-link" href="admin/laan">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Alle lån
             </NavLink>
         </div>
+    </AuthorizeView>
 
+    <AuthorizeView Roles="Student">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+            <NavLink class="nav-link" href="mine-laan">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Mine lån
             </NavLink>
         </div>
-    </nav>
-</div>
+    </AuthorizeView>
 
+    <AuthorizeView>
+        <Authorized>
+            <div class="nav-item px-3">
+                <form method="post" action="/logout">
+                    <button type="submit" class="nav-link btn btn-link">
+                        Log ud (@context.User.Identity?.Name)
+                    </button>
+                </form>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="login">Log ind</NavLink>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
+</nav>

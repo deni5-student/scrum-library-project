@@ -1,5 +1,9 @@
 ﻿@page "/login"
-@inject IAuthService AuthService
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@inject IAuthService Auth
+@inject NavigationManager Navigation
 
 <PageTitle>Log ind</PageTitle>
 
@@ -12,11 +16,6 @@
     @if (!string.IsNullOrEmpty(errorMessage))
     {
         <div class="alert alert-danger">@errorMessage</div>
-    }
-
-    @if (!string.IsNullOrEmpty(successMessage))
-    {
-        <div class="alert alert-success">@successMessage</div>
     }
 
     <div class="mb-3">
@@ -35,15 +34,17 @@
 </EditForm>
 
 @code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
     [SupplyParameterFromForm]
     private LoginModel Model { get; set; } = new();
 
     private string? errorMessage;
-    private string? successMessage;
 
-    private void HandleLogin()
+    private async Task HandleLogin()
     {
-        var user = AuthService.ValidateUser(Model.Username, Model.Password);
+        var user = Auth.ValidateUser(Model.Username, Model.Password);
 
         if (user is null)
         {
@@ -51,7 +52,17 @@
             return;
         }
 
-        // Cookie sign-in kommer i 0.2.7
-        successMessage = $"Velkommen, {user.Username} ({user.Role})";
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.Name, user.Username),
+            new(ClaimTypes.Role, user.Role)
+        };
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(identity));
+
+        Navigation.NavigateTo("/books");
     }
 }
